@@ -1,64 +1,75 @@
-# 🧠 Vision AI 특강 정리 · Hugging Face CLI + Colab CLI
+# 🛠️ Vision AI 특강 정리: 환경 설정과 CLI 연결
 
-> **내 컴퓨터는 명령만 내리고, 무거운 연산은 Colab GPU가 한다.**
-> 사전학습 모델(DeiT-tiny)을 받아 추론하고, 병·그릇·캔·컵·접시 5개 클래스로 가볍게 파인튜닝하는 특강을 정리한 저장소입니다.
+> **내 PC는 명령만 내리고, 무거운 연산은 Colab GPU가 한다.**
+> 이 특강의 핵심은 모델이 아니라, 그 연결을 가능하게 하는 **환경 설정**과 **CLI 연결**입니다.
 
 실습 원본: [yblee110/vision-ai-notebook](https://github.com/yblee110/vision-ai-notebook)
 
-![전체 구조](images/architecture.png)
+![환경 3층 구조](images/env_layers.png)
 
 ## 📁 들어 있는 것
 
 | 파일 | 내용 |
 |---|---|
-| [`Vision_AI_특강_정리.ipynb`](Vision_AI_특강_정리.ipynb) | 정리 노트북 (마크다운 설명 + 개념 코드 + 실행 결과 이미지) |
+| [`Vision_AI_특강_정리.ipynb`](Vision_AI_특강_정리.ipynb) | 정리 노트북 (설명 + 환경 확인 코드 + 캡처) |
 | [`Vision_AI_특강_정리.pdf`](Vision_AI_특강_정리.pdf) | 같은 내용의 PDF (A4) |
 | [`특강_정리본.md`](특강_정리본.md) | 같은 내용의 마크다운 정리본 |
-| [`code/run_cpu_demo.py`](code/run_cpu_demo.py) | 00·01·02 핵심 단계를 **CPU로 재현**하는 스크립트 |
-| [`code/cpu_run_log.txt`](code/cpu_run_log.txt) | 재현 실행 로그 |
-| `images/` | 실행하면서 캡처한 그림 |
-| `tools/` | 노트북·PDF를 다시 만드는 스크립트 |
+| `images/` | 직접 실행하며 캡처한 화면과 구조도 |
+| [`code/run_cpu_demo.py`](code/run_cpu_demo.py) | 부록용: 실습 모델 코드를 CPU로 재현한 스크립트 |
+| [`tools/content.md`](tools/content.md) | 원고. `python tools/build_all.py`로 노트북·md·PDF를 다시 만든다 |
 
-## 🗂 정리 목차
-0. 내 소감: 마크다운이 안 보여 힘들었던 점, CLI를 쓰는 이유
-1. 전체 그림
-2. Colab CLI란? (Colab 노트북과 비교)
-3. 왜 Colab CLI인가? (컴퓨팅 유닛, 비용 안전성, RunPod·GCP 비교)
-4. Colab CLI 핵심 명령어와 주의점
-5. Hugging Face CLI와 revision 고정
-6. 개발 환경: Fork → Codespaces
-7. 실습 흐름: 00 · 01 · 02 노트북
-8. 핵심 코드 4개 + `pipeline()` + **코드 쉽게 읽기**
-9. 파인튜닝 개념과 결과 + **직접 실행해 본 결과**
-10. 셸 시연과 에이전트 스킬
-11. GPU 고르는 법
-12. 트러블슈팅
-13. 마무리 메시지와 복습 체크리스트
+## 🗂 목차
 
-## 🖥️ 직접 실행해 본 결과 (CPU 재현)
+0. 내 소감: README가 안 보여서 막혔던 점, CLI를 쓰는 이유
+1. 한눈에 보기: 환경 3층 구조
+2. 왜 환경을 이렇게 나누나 (내 PC, Codespaces, Colab GPU)
+3. 1층: Codespaces 자동 세팅 (`devcontainer.json`, `Dockerfile`, `setup.sh`, `doctor.py`)
+4. 직접 해보니: Windows에서 재현한 결과
+5. 2층: 인증 (Hugging Face, Google OAuth2)
+6. 3층: Colab 런타임 연결 (`new`, `upload`, `exec`, `restart-kernel`, `download`, `stop`)
+7. 연결 자동화: 셸 스크립트와 에이전트 스킬
+8. GPU 고르기와 비용
+9. 환경 트러블슈팅
+10. 복습 체크리스트
+- 부록: 실습 코드 흐름, 모델 실행 결과
 
-| 비교 | 내 CPU 재현 (2026-10-03) | 원본 저장소 T4 기록 (2026-09-19) |
-|---|---:|---:|
-| 분류기만 학습 (head) | **80.5%** | 80.0% |
-| 마지막 블록까지 파인튜닝 | **82.0%** | 81.0% |
-| 파인튜닝 최고 epoch | 2 | 2 |
+## 🔍 직접 해보고 알게 된 것
 
-| 원본 모델 추론 | 파인튜닝 결과 |
-|---|---|
-| ![](images/02_pretrained_top5.png) | ![](images/04_confusion_comparison.png) |
+| 시도 | 결과 | 배운 점 |
+|---|---|---|
+| Python 3.10에 Colab CLI 설치 | 실패 | Colab CLI는 Python 3.12 이상 필요 |
+| `uv`로 Python 3.12 환경 생성 | 성공, 수업 패키지 11개 설치 | `setup.sh`가 하는 일을 그대로 재현 |
+| `doctor.py` 점검 | 패키지·`hf`는 OK, `colab`은 오류 | 점검 스크립트로 환경 문제를 바로 찾는다 |
+| Windows에서 `colab --help` | `termios` 없음 오류 | Colab CLI는 리눅스·맥 전용 → **Codespaces를 쓰는 이유** |
+| `run_pipeline_colab.sh --dry-run` | 9단계 연결 계획 출력 | 로그인·GPU 없이 연결 흐름을 미리 확인 |
 
-## ▶️ CPU 재현 다시 돌리기
+![Windows에서 colab 실행](images/env_04_colab_windows.png)
+
+## ⚡ 핵심 명령 요약
 
 ```bash
-python -m venv venv
-venv/Scripts/pip install torch --index-url https://download.pytorch.org/whl/cpu
-venv/Scripts/pip install "transformers==4.57.6" "huggingface_hub[cli]==0.36.0" numpy pillow matplotlib pyarrow
-venv/Scripts/python code/run_cpu_demo.py
+# 1층: 환경 점검 (Codespaces 터미널)
+source .venv/bin/activate
+python scripts/doctor.py
+
+# 2층: Google 로그인
+colab --auth oauth2 sessions
+
+# 3층: Colab GPU 연결
+colab new -s hf-vision-gpu --gpu T4
+colab upload -s hf-vision-gpu hf_colab_gpu/requirements-torch.txt content/requirements-torch.txt
+colab exec -s hf-vision-gpu --timeout 1800 <<'PY'
+import subprocess, sys
+subprocess.run([sys.executable,'-m','pip','install','-r','/content/requirements-torch.txt'], check=True)
+PY
+colab restart-kernel -s hf-vision-gpu
+colab exec -s hf-vision-gpu -f hf_colab_gpu/notebooks/01_gpu_inference.ipynb --timeout 1800
+colab stop -s hf-vision-gpu
+colab sessions
 ```
 
-macOS·Linux에서는 `venv/Scripts/` 대신 `venv/bin/`을 씁니다. 모델 약 23MB와 데이터 약 142MB를 내려받고, CPU로 2분 정도 걸립니다.
-
 ## 📚 출처
-- 실습 코드·구성: [yblee110/vision-ai-notebook](https://github.com/yblee110/vision-ai-notebook)
-- 모델: [facebook/deit-tiny-patch16-224](https://huggingface.co/facebook/deit-tiny-patch16-224) (revision `b3428f18`)
-- 데이터: [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html) ([uoft-cs/cifar100](https://huggingface.co/datasets/uoft-cs/cifar100))
+- 실습 코드와 환경 설정: [yblee110/vision-ai-notebook](https://github.com/yblee110/vision-ai-notebook)
+- Colab CLI: [googlecolab/google-colab-cli](https://github.com/googlecolab/google-colab-cli)
+- 모델: [facebook/deit-tiny-patch16-224](https://huggingface.co/facebook/deit-tiny-patch16-224)
+- 데이터: [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html)
