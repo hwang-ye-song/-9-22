@@ -1,0 +1,42 @@
+
+===== 00 · hf download =====
+$ hf download facebook/deit-tiny-patch16-224 config.json preprocessor_config.json pytorch_model.bin --revision b3428f18dcc7b543470d07f14b4a4157815d1880 --local-dir models/deit-tiny
+config.json                    69,592 bytes · SHA256 확인
+preprocessor_config.json          160 bytes · SHA256 확인
+pytorch_model.bin          22,950,127 bytes · SHA256 확인
+
+===== 00 · CIFAR-100 → 5개 클래스 분할 =====
+Verified: train-00000-of-00001.parquet
+Verified: test-00000-of-00001.parquet
+train      {'bottle': 100, 'bowl': 100, 'can': 100, 'cup': 100, 'plate': 100} (500, 32, 32, 3)
+validation {'bottle': 20, 'bowl': 20, 'can': 20, 'cup': 20, 'plate': 20} (100, 32, 32, 3)
+test       {'bottle': 40, 'bowl': 40, 'can': 40, 'cup': 40, 'plate': 40} (200, 32, 32, 3)
+
+===== 01 · 원본 모델 추론 (ImageNet 1,000 라벨) =====
+ViTForImageClassification · 원래 분류 수: 1000
+전체 파라미터: 5,717,416
+[pipeline] 실제 정답: cup
+   5.01%  face powder
+   4.10%  eggnog
+   1.87%  frying pan, frypan, skillet
+   1.73%  waffle iron
+   1.39%  potter's wheel
+[infer_probabilities] 개수: 1000 · 합: 1.0
+[topk k=1] face powder 5.0%
+[topk k=3] face powder 5.0%, eggnog 4.1%, frying pan 1.9%
+
+===== 02 · 파인튜닝 (CPU) =====
+입력 크기: (500, 3, 224, 224)
+select_finetune_parameters('head') → 965개
+select_finetune_parameters('last_block') → 446,213개
+head 1/3 · train loss 1.340 · train acc 48.6% · validation acc 73.0% · 13s
+head 2/3 · train loss 0.788 · train acc 79.8% · validation acc 78.0% · 14s
+head 3/3 · train loss 0.617 · train acc 84.0% · validation acc 82.0% · 13s
+선택 epoch 3 · head test 80.5% · macro F1 0.805
+finetune 1/3 · train loss 0.478 · train acc 85.0% · validation acc 85.0% · 15s
+finetune 2/3 · train loss 0.369 · train acc 87.8% · validation acc 87.0% · 15s
+finetune 3/3 · train loss 0.301 · train acc 89.8% · validation acc 84.0% · 16s
+선택 epoch 2 · fine-tune test 82.0% · macro F1 0.820
+[파인튜닝 후 같은 컵 이미지] bowl 72.2%, cup 16.9%, can 4.9%, plate 4.8%, bottle 1.1%
+
+총 실행 시간: 113초 (CPU)
